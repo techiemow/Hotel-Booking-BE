@@ -1,4 +1,5 @@
-const express = require("express")
+const express = require("express");
+const { connectdb } = require("./db");
 
 
 const port = 4000;
@@ -9,10 +10,9 @@ app.get("/" , (req,res) =>{
     res.send("Welcome to BookHaven page")
 })
 
+connectdb();
 
-app.get("/login", (req,res) =>
-    res.send("Login Page")
-)
+
 
 
 
