@@ -1,5 +1,5 @@
 const { RegistrationModel, BookingModel } = require("./Schema");
-
+const {ObjectId} = require("mongodb")
 
 const handleRegistration = async(req,res) =>{
     console.log(req.body)
@@ -57,7 +57,7 @@ const handleRegistration = async(req,res) =>{
       const handleBooking = async (req, res) => {
         console.log(req.body);
         
-        const { selectedTime, selectedRooms, selectedOutDate, selectedInDate, username} = req.body;
+        const { selectedTime, selectedRooms, selectedOutDate, selectedInDate, username , Price} = req.body;
       
         // Check if all required fields are present and not empty
         if (
@@ -65,7 +65,8 @@ const handleRegistration = async(req,res) =>{
           selectedRooms?.length ||
           selectedOutDate?.length ||
           selectedInDate?.length ||
-          username?.length 
+          username?.length ||
+          Price
         
         ) {
           // Create a new booking entry in the database
@@ -75,6 +76,8 @@ const handleRegistration = async(req,res) =>{
             selectedOutDate,
             selectedInDate,
             username,
+            Price,
+            isCancelled: false
            
           });
       
@@ -94,11 +97,57 @@ const handleRegistration = async(req,res) =>{
       };
       
 
+    const handleMyBooking = async(req, res) => {
+      const { username } = req.params;
+
+      if (username?.length) {
+        const dbResponse = await BookingModel.find({
+          username
+        });
+    
+        if (dbResponse) {
+          res.send(dbResponse);
+          return;
+        }
+      }
+    
+      res.send("cant fetch details");
+    };
+
+
+    const handleCancelBooking =  async(req, res) => {
+
+      
+        const { username, bookingId } = req.params;
+      
+        if (username?.length && bookingId?.length) {
+          const filter = {
+            _id: new ObjectId(bookingId),
+          };
+          const update = { isCancelled: true };
+          const dbResponse = await BookingModel.findOneAndUpdate(filter, update);
+      
+          if (dbResponse) {
+            res.send("Cancelled Success");
+            return;
+          }
+        }
+        res.send("Cancelled Failed");
+      };
+    
+    
+
+
+
+    
+
 
 
 
 module.exports = {
     handleRegistration,
     handleLogin,
-    handleBooking
+    handleBooking,
+    handleMyBooking,
+    handleCancelBooking
 }

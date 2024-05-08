@@ -19,6 +19,7 @@ const RegistrationSchema = new Schema({
         type: String,
         required: true
     }
+   
 
 })
 
@@ -43,6 +44,11 @@ const BookingSchema = new Schema({
         type: String,
         required: true
     },
+    Price :{
+        type: Number,
+        required: true
+    },
+    isCancelled: { type: Boolean }
     
 }
 )

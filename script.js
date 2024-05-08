@@ -3,7 +3,7 @@ const cors = require("cors");
 const { connectdb } = require("./db");
 const bodyParser = require("body-parser");
 
-const {handleRegistration, handleLogin, handleBooking} = require("./service");
+const {handleRegistration, handleLogin, handleBooking, handleMyBooking,handleCancelBooking} = require("./service");
 
 const port = 4000;
 
@@ -30,6 +30,15 @@ app.post("/create_booking", async(req,res) =>{
     handleBooking(req, res)
     
 })
+
+app.get("/mybookings/:username", async(req,res) =>{
+    handleMyBooking(req, res)
+    
+})
+
+app.put("/cancelBooking/:username/:bookingId", (req, res) => {
+    handleCancelBooking(req, res);
+  });
 
 
 
