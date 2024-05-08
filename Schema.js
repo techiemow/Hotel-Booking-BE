@@ -53,13 +53,32 @@ const BookingSchema = new Schema({
 }
 )
 
+const ReviewSchema = new Schema({
+    username: {
+        type: String,
+        required: true
+    },
+ 
+    review: {
+        type: String,
+        required: true
+    },
+    rating: {
+        type: Number,
+        required: true
+    }
+})
+
 
 const BookingModel = mongoose.model("MyBookings", BookingSchema)
 
+const ReviewModel = mongoose.model("Reviews", ReviewSchema)
 
 const RegistrationModel = mongoose.model('Registrations', RegistrationSchema);
 
 module.exports= {
     BookingModel,
-    RegistrationModel
+    RegistrationModel,
+    ReviewModel
+
 }

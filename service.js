@@ -1,4 +1,4 @@
-const { RegistrationModel, BookingModel } = require("./Schema");
+const { RegistrationModel, BookingModel ,ReviewModel } = require("./Schema");
 const {ObjectId} = require("mongodb")
 
 const handleRegistration = async(req,res) =>{
@@ -135,9 +135,31 @@ const handleRegistration = async(req,res) =>{
         res.send("Cancelled Failed");
       };
     
-    
-
-
+      const handleReview = async (req, res) => {
+        try {
+          console.log("Review", req.body);
+          
+          const { username, rating, review } = req.body; // Adjusted field name to 'rating' based on your React form
+          if (!username || !review) {
+            console.log("Required fields are missing or empty");
+            return res.status(400).send("Required fields (username, review) are missing or empty");
+          }
+      
+          // Create a new review instance
+          const reviewRes = await ReviewModel.create({ username, rating, review });
+      
+          if (reviewRes) {
+            console.log("Review has been posted:", reviewRes);
+            return res.status(201).send(reviewRes); // HTTP 201 Created
+          } else {
+            console.log("Failed to create review in the database");
+            return res.status(500).send("Failed to create review");
+          }
+        } catch (error) {
+          console.error("Error creating review:", error.message);
+          return res.status(500).send("Internal Server Error");
+        }
+      };
 
     
 
@@ -149,5 +171,7 @@ module.exports = {
     handleLogin,
     handleBooking,
     handleMyBooking,
-    handleCancelBooking
+    handleCancelBooking,
+    handleReview
+    
 }
