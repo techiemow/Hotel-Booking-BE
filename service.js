@@ -1,4 +1,4 @@
-const { RegistrationModel } = require("./Schema");
+const { RegistrationModel, BookingModel } = require("./Schema");
 
 
 const handleRegistration = async(req,res) =>{
@@ -54,12 +54,51 @@ const handleRegistration = async(req,res) =>{
       };
 
 
-
+      const handleBooking = async (req, res) => {
+        console.log(req.body);
+        
+        const { selectedTime, selectedRooms, selectedOutDate, selectedInDate, username} = req.body;
+      
+        // Check if all required fields are present and not empty
+        if (
+          selectedTime?.length ||
+          selectedRooms?.length ||
+          selectedOutDate?.length ||
+          selectedInDate?.length ||
+          username?.length 
+        
+        ) {
+          // Create a new booking entry in the database
+          const dbResponse = await BookingModel.create({
+            selectedTime,
+            selectedRooms,
+            selectedOutDate,
+            selectedInDate,
+            username,
+           
+          });
+      
+          // Check if the database response contains a valid _id
+          if (dbResponse?._id) {
+            console.log("Booking Created Successfully");
+            res.send(dbResponse);
+            return;
+          } else {
+            console.log("Failed to create booking in the database");
+            res.status(500).send("Failed to create booking");
+          }
+        } else {
+          console.log("Required fields are missing or empty");
+          res.status(400).send("Required fields are missing or empty");
+        }
+      };
+      
 
 
 
 
 module.exports = {
     handleRegistration,
-    handleLogin
+    handleLogin,
+    handleBooking
 }

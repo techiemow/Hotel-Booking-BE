@@ -3,13 +3,13 @@ const cors = require("cors");
 const { connectdb } = require("./db");
 const bodyParser = require("body-parser");
 
-const {handleRegistration,handleLogin} = require("./service");
+const {handleRegistration, handleLogin, handleBooking} = require("./service");
 
 const port = 4000;
 
 const app = express()
 app.use(bodyParser.json())
-app.use(cors())
+app.use(cors ())
 connectdb();
 
 app.get("/" , (req,res) =>{
@@ -26,6 +26,10 @@ app.get("/Login/:username/:password", async(req,res) =>{
 
 })
 
+app.post("/create_booking", async(req,res) =>{
+    handleBooking(req, res)
+    
+})
 
 
 

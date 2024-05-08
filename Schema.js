@@ -22,9 +22,38 @@ const RegistrationSchema = new Schema({
 
 })
 
+const BookingSchema = new Schema({
+    username: {
+        type: String,
+        required: true
+    },
+    selectedInDate:{
+        type: String,
+        required: true
+    },
+    selectedOutDate:{
+        type: String,
+        required: true
+    },
+    selectedRooms:{
+        type: Number,
+        required: true
+    },
+    selectedTime: {
+        type: String,
+        required: true
+    },
+    
+}
+)
+
+
+const BookingModel = mongoose.model("MyBookings", BookingSchema)
+
 
 const RegistrationModel = mongoose.model('Registrations', RegistrationSchema);
 
 module.exports= {
+    BookingModel,
     RegistrationModel
 }
