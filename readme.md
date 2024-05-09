@@ -26,6 +26,8 @@
 
 - Integrate middleware for user permissions and role-based access control.
 
+- Backend Flow
+![](./assests/backend%20process%20.png)
 
  ## Functionality Development:
 
