@@ -20,6 +20,26 @@ app.use(bodyParser.json())
 app.use(cors ({
 
 }))
+
+
+
+// Use the logRequest middleware for all routes
+const logRequest = (req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next(); // Call next() to move to the next middleware or route handler
+};
+
+
+app.use(logRequest);
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Internal Server Error');
+});
+
+
+
+
 connectdb();
 
 app.get("/" , (req,res) =>{
@@ -32,6 +52,7 @@ app.post("/registration" , async(req,res) =>{
 })
 
 app.get("/Login/:username/:password", async(req,res) =>{
+   
   const { username, password } = req.params;
 
   try {
