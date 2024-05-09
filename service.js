@@ -1,5 +1,7 @@
 const { RegistrationModel, BookingModel ,ReviewModel } = require("./Schema");
 const {ObjectId} = require("mongodb")
+const bcrypt = require('bcryptjs');
+
 
 const handleRegistration = async(req,res) =>{
     console.log(req.body)
@@ -28,30 +30,27 @@ const handleRegistration = async(req,res) =>{
 }
 
 
+const handleLogin = async (username, password) => {
+  try {
+    // Find user by username
+    const user = await RegistrationModel.findOne({ username });
 
-    const handleLogin = async (req, res) => {
-        console.log(req.params);
-        try {
-          
-          const { username, password } = req.params;
-          console.log("Username:", username);
-          console.log("Password:", password);
-      
-          const user = await RegistrationModel.findOne({ 
-            username: username, 
-            password: password 
-        });
-      
-          if (user) {
-            res.send(user.username); // Send username back to frontend
-          } else {
-            res.status(401).send("Login Failed"); // Send appropriate response if login fails
-          }
-        } catch (error) {
-          console.error("Login error:", error);
-          res.status(500).send("Internal Server Error");
-        }
-      };
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Compare entered password with hashed password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (passwordMatch) {
+      return { success: true, username: user.username };
+    } else {
+      throw new Error("Incorrect password");
+    }
+  } catch (error) {
+    throw new Error("Login failed");
+  }
+};
 
 
       const handleBooking = async (req, res) => {

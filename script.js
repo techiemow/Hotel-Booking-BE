@@ -32,7 +32,15 @@ app.post("/registration" , async(req,res) =>{
 })
 
 app.get("/Login/:username/:password", async(req,res) =>{
-    handleLogin(req, res)
+  const { username, password } = req.params;
+
+  try {
+    const loginResult = await handleLogin(username, password);
+    res.json(loginResult);
+  } catch (error) {
+    console.error("Login error:", error.message);
+    res.status(401).send("Login Failed: " + error.message);
+  }
 
 })
 
