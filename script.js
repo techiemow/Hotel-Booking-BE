@@ -38,6 +38,38 @@ app.use((err, req, res, next) => {
 });
 
 
+const verifyUser = async (username) => {
+  const dbResponse = await SignUpModel.findOne({ username });
+  if (dbResponse._id) {
+    return true;
+  }
+  return false;
+};
+
+const authorization = (req, res, next) => {
+  console.log(req.path, "req");
+
+  if (req.path === "/Login/:username/:password"||"/registration"||"/cancelBooking/:username/:bookingId") {
+    next();
+  } else {
+    const userToken = req.headers.auth;
+    if (!userToken) {
+      res.send(400);
+    }
+    const tokenDecoded = jwt.verify(userToken, "userkey");
+    const username = tokenDecoded.data;
+
+    verifyUser(username).then((response) => {
+      if (response) {
+        next();
+      } else {
+        res.send(400);
+      }
+    });
+  }
+};
+
+app.use(authorization);
 
 
 connectdb();
@@ -57,7 +89,8 @@ app.get("/Login/:username/:password", async(req,res) =>{
 
   try {
     const loginResult = await handleLogin(username, password);
-    res.json(loginResult);
+    res.send(loginResult);
+    console.log(loginResult)
   } catch (error) {
     console.error("Login error:", error.message);
     res.status(401).send("Login Failed: " + error.message);

@@ -1,8 +1,7 @@
 const { RegistrationModel, BookingModel ,ReviewModel } = require("./Schema");
 const {ObjectId} = require("mongodb")
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
+const jwt = require('jsonwebtoken')
 
 const handleRegistration = async(req,res) =>{
     console.log(req.body)
@@ -37,7 +36,6 @@ const handleRegistration = async(req,res) =>{
                   // Find user by username
                   const user = await RegistrationModel.findOne({ username });
 
-              
                   if (!user) {
                     throw new Error("User not found");
                   }
@@ -46,22 +44,19 @@ const handleRegistration = async(req,res) =>{
                   const passwordMatch = await bcrypt.compare(password, user.password);
 
                   if (passwordMatch) {
-                 
                     const token = jwt.sign({ data: username }, "userkey");
-                    console.log(" token: " + token);
+                    console.log("Token: " + token);
                     return { success: true, username: user.username , token: token};
+                    
                   } else {
                     throw new Error("Incorrect password");
                   }
-                 
-
                 } catch (error) {
                   throw new Error("Login failed");
                 }
               };  
 
 
-           
       const handleBooking = async (req, res) => {
         console.log(req.body);
         
