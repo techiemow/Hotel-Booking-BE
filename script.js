@@ -3,6 +3,7 @@ const Razorpay = require('razorpay')
 const cors = require("cors");
 const { connectdb } = require("./db");
 const bodyParser = require("body-parser");
+const { RegistrationModel } = require("./Schema");
 
 const {handleRegistration, handleLogin, handleBooking, handleMyBooking,handleCancelBooking,handleReview } = require("./service");
 
@@ -39,7 +40,7 @@ app.use((err, req, res, next) => {
 
 
 const verifyUser = async (username) => {
-  const dbResponse = await SignUpModel.findOne({ username });
+  const dbResponse = await  RegistrationModel.findOne({ username });
   if (dbResponse._id) {
     return true;
   }
