@@ -3,7 +3,8 @@ const Razorpay = require('razorpay')
 const cors = require("cors");
 const { connectdb } = require("./db");
 const bodyParser = require("body-parser");
-const { RegistrationModel } = require("./Schema");
+const { RegistrationModel,BookingModel } = require("./Schema");
+const {ObjectId} = require("mongodb")
 
 const {handleRegistration, handleLogin, handleBooking, handleMyBooking,handleCancelBooking,handleReview } = require("./service");
 
@@ -120,22 +121,44 @@ app.post("/Review" ,(req, res) =>{
 });
 
 
-  app.post('/payment', async(req, res) => {
-    const { amount, currency } = req.body;
-  
-    try {
-      const order = await razorpay.orders.create({
-        amount,
-        currency,
-        receipt: 'order_rcptid_11',
-        payment_capture: 1,
-      });
-  
-      res.json(order);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+
+app.post('/payment/:bookingId', async (req, res) => {
+  const { amount, currency } = req.body;
+  const { bookingId } = req.params;
+
+  try {
+    if (bookingId) {
+      const filter = { _id: new ObjectId(bookingId) };
+      const update = { payment: true };
+
+      // Update the booking document to mark it as paid
+      const dbResponse = await BookingModel.findOneAndUpdate(filter, update);
+
+      if (dbResponse) {
+        // Create Razorpay order
+        const order = await razorpay.orders.create({
+          amount,
+          currency,
+          receipt: 'order_rcptid_11',
+          payment_capture: 1,
+        });
+
+        // Send the Razorpay order details as JSON response
+        res.json(order);
+      } else {
+        // Booking not found or could not be updated
+        res.status(404).json({ error: 'Booking not found or could not be updated' });
+      }
+    } else {
+      // Invalid or missing bookingId parameter
+      res.status(400).json({ error: 'Invalid or missing bookingId parameter' });
     }
-  });
+  } catch (error) {
+    // Handle any errors that occur during the payment process
+    console.error('Payment error:', error.message);
+    res.status(500).json({ error: 'Payment failed' });
+  }
+});
 
 
 

@@ -48,7 +48,8 @@ const BookingSchema = new Schema({
         type: Number,
         required: true
     },
-    isCancelled: { type: Boolean }
+    isCancelled: { type: Boolean },
+    payment : { type : Boolean}
     
 }
 )
