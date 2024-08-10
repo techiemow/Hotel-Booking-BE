@@ -129,7 +129,7 @@ app.get("/mybookings/:username", async(req,res) =>{
     
 })
 
-app.put("/cancelBooking/:username/:bookingId", (req, res) => {
+app.delete("/cancelBooking/:username/:bookingId", (req, res) => {
     handleCancelBooking(req, res);
   });
 
@@ -167,7 +167,7 @@ app.post('/payment/:bookingId', async (req, res) => {
 
 
 
-app.post("/payment/verify/:orderId" ,async(req,res) =>{
+app.put("/payment/verify/:orderId" ,async(req,res) =>{
 
   const { paymentId , signature, bookingId }= req .body
   const { orderId } = req.params;
@@ -204,17 +204,6 @@ app.post("/payment/verify/:orderId" ,async(req,res) =>{
     console.error('Payment verification error:', error.message);
     res.status(500).json({ error: 'Payment verification failed' });
   }
-
-
-
-
-
-
-
-
-
-
-
 
 })
 
