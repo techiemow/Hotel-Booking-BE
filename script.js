@@ -5,6 +5,8 @@ const { connectdb } = require("./db");
 const bodyParser = require("body-parser");
 const { RegistrationModel,BookingModel } = require("./Schema");
 const {ObjectId} = require("mongodb")
+const jwt = require("jsonwebtoken")
+require("dotenv").config();
 
 const {handleRegistration, handleLogin, handleBooking, handleMyBooking,handleCancelBooking,handleReview } = require("./service");
 
@@ -28,8 +30,10 @@ app.use(cors ({
 // Use the logRequest middleware for all routes
 const logRequest = (req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next(); // Call next() to move to the next middleware or route handler
+  next(); 
 };
+
+console.log("secert key ", process.env.JWT_SECRET_KEY);
 
 
 app.use(logRequest);
@@ -41,37 +45,53 @@ app.use((err, req, res, next) => {
 
 
 const verifyUser = async (username) => {
-  const dbResponse = await  RegistrationModel.findOne({ username });
-  if (dbResponse._id) {
-    return true;
+  try {
+    const dbResponse = await RegistrationModel.findOne({ username });
+     console.log(dbResponse);
+     
+    return dbResponse ? true : false;
+  } catch (error) {
+    console.error("Error verifying user:", error);
+    return false;
   }
-  return false;
 };
 
-const authorization = (req, res, next) => {
+const authorization = async (req, res, next) => {
   console.log(req.path, "req");
 
-  if (req.path === "/Login/:username/:password"||"/registration"||"/cancelBooking/:username/:bookingId") {
-    next();
-  } else {
-    const userToken = req.headers.auth;
-    if (!userToken) {
-      res.send(400);
-    }
-    const tokenDecoded = jwt.verify(userToken, "userkey");
+  // Allow these paths without authentication
+  if (req.path.startsWith("/Login") || req.path === "/registration" || req.path.startsWith("/cancelBooking")) {
+    return next();
+  }
+
+  // Extract token from headers
+  const userToken = req.headers['auth']; 
+
+  if (!userToken) {
+    return res.status(401).send("Authorization token is missing.");
+  }
+
+  try {
+    // Verify the token
+    const tokenDecoded = jwt.verify(userToken, process.env.JWT_SECRET_KEY);
     const username = tokenDecoded.data;
 
-    verifyUser(username).then((response) => {
-      if (response) {
-        next();
-      } else {
-        res.send(400);
-      }
-    });
+    // Verify user existence
+    const isUserValid = await verifyUser(username);
+    if (isUserValid) {
+      return next();
+    } else {
+      return res.status(401).send("Invalid user.");
+    }
+  } catch (error) {
+    console.error("Error in authorization middleware:", error);
+    return res.status(401).send("Invalid token.");
   }
 };
 
+// Use the authorization middleware
 app.use(authorization);
+
 
 
 connectdb();
@@ -124,17 +144,9 @@ app.post("/Review" ,(req, res) =>{
 
 app.post('/payment/:bookingId', async (req, res) => {
   const { amount, currency } = req.body;
-  const { bookingId } = req.params;
 
   try {
-    if (bookingId) {
-      const filter = { _id: new ObjectId(bookingId) };
-      const update = { payment: true };
-
-      // Update the booking document to mark it as paid
-      const dbResponse = await BookingModel.findOneAndUpdate(filter, update);
-
-      if (dbResponse) {
+  
         // Create Razorpay order
         const order = await razorpay.orders.create({
           amount,
@@ -143,22 +155,65 @@ app.post('/payment/:bookingId', async (req, res) => {
           payment_capture: 1,
         });
 
-        // Send the Razorpay order details as JSON response
         res.json(order);
+ 
+      }
+    catch (error) {
+        console.error('Error creating Razorpay order:', error);
+        res.status(500).json({ message: 'Payment failed' });
+    }
+ 
+  }
+);
+
+
+
+app.post("/payment/verify/:orderId" ,async(req,res) =>{
+
+  const { paymentId , signature, bookingId }= req .body
+  const { orderId } = req.params;
+ 
+  console.log(paymentId, orderId, signature);
+
+  try {
+    // Verify payment signature
+    const generatedSignature = crypto.createHmac('sha256', 'ozspmFKoIn4xtZLmJsmXEVoR')
+      .update(`${orderId}|${paymentId}`)
+      .digest('hex');
+
+    if (generatedSignature === signature) {
+      const filter = { _id: new mongoose.Types.ObjectId(bookingId) };
+      const update = { payment: true }; 
+
+      const dbResponse = await BookingModel.findOneAndUpdate(filter, update);
+
+      console.log(dbResponse);
+
+      if (dbResponse) {
+        res.json({ success: true });
       } else {
-        // Booking not found or could not be updated
         res.status(404).json({ error: 'Booking not found or could not be updated' });
       }
     } else {
-      // Invalid or missing bookingId parameter
-      res.status(400).json({ error: 'Invalid or missing bookingId parameter' });
+      res.status(400).json({ error: 'Invalid signature' });
     }
   } catch (error) {
-    // Handle any errors that occur during the payment process
-    console.error('Payment error:', error.message);
-    res.status(500).json({ error: 'Payment failed' });
+    console.error('Payment verification error:', error.message);
+    res.status(500).json({ error: 'Payment verification failed' });
   }
-});
+
+
+
+
+
+
+
+
+
+
+
+
+})
 
 
 
