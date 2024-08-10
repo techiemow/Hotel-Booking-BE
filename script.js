@@ -6,8 +6,8 @@ const bodyParser = require("body-parser");
 const { RegistrationModel,BookingModel } = require("./Schema");
 const {ObjectId} = require("mongodb")
 const jwt = require("jsonwebtoken")
-require("dotenv").config();
 
+const crypto = require("crypto")
 const {handleRegistration, handleLogin, handleBooking, handleMyBooking,handleCancelBooking,handleReview } = require("./service");
 
 const PORT = process.env.PORT || 4000;
