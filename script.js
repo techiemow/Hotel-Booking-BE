@@ -31,7 +31,7 @@ const logRequest = (req, res, next) => {
   next(); 
 };
 
-console.log("secert key ", process.env.JWT_SECRET_KEY);
+console.log("secert key",process.env.JWT_SECRET_KEY);
 
 
 app.use(logRequest);
