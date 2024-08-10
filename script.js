@@ -9,13 +9,14 @@ const jwt = require("jsonwebtoken")
 
 const crypto = require("crypto")
 const {handleRegistration, handleLogin, handleBooking, handleMyBooking,handleCancelBooking,handleReview } = require("./service");
+const mongoose = require(`mongoose`)
 
 const PORT = process.env.PORT || 4000;
 
 
 const razorpay = new Razorpay({
-    key_id: 'rzp_test_DClMygpDU9TijX', // Replace with your Razorpay key_id
-    key_secret: 'ozspmFKoIn4xtZLmJsmXEVoR', // Replace with your Razorpay key_secret
+    key_id:process.env.RAZORPAY_KEY_ID,// Replace with your Razorpay key_id
+    key_secret:process.env.RAZORPAY_SECRET_KEY, // Replace with your Razorpay key_secret
   });
   
 
@@ -171,7 +172,7 @@ app.post("/payment/verify/:orderId" ,async(req,res) =>{
   const { paymentId , signature, bookingId }= req .body
   const { orderId } = req.params;
  
-  console.log(paymentId, orderId, signature);
+
 
   try {
     // Verify payment signature
@@ -179,9 +180,13 @@ app.post("/payment/verify/:orderId" ,async(req,res) =>{
       .update(`${orderId}|${paymentId}`)
       .digest('hex');
 
+
     if (generatedSignature === signature) {
       const filter = { _id: new mongoose.Types.ObjectId(bookingId) };
       const update = { payment: true }; 
+
+
+      
 
       const dbResponse = await BookingModel.findOneAndUpdate(filter, update);
 
